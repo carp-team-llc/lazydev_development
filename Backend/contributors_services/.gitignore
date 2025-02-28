@@ -1,0 +1,8 @@
+node_modules
+
+# Keep environment variables out of version control
+.env
+.env.development
+
+# key
+lazy-dev-development.2025-02-13.private-key.pem

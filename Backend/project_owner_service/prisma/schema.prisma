@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------- Project owner profile model --------------------
+model ProjectOwner {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  githubId       String   @unique
+  githubUsername String
+  githubEmail    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  isActivated    Boolean  @default(false)
+  pricing        String
+  level          String
+  repositories   Int      @default(1)
+  repoCount      Int      @default(0)
+
+  // one to more
+  project        Project[]
+}
+
+// -------------------- Project model --------------------
+model Project {
+  id                  String                @id @default(uuid())
+  name                String
+  logo                String                @default("https://raw.githubusercontent.com/svg-image-stograge/lazy-dev-stograge/refs/heads/main/lazydev-big.png")
+  introduce           String?
+  description         String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now())
+  social              String[]              @default([])
+  // one to one
+  githubInfo          GithubInfo?
+  // one to more
+  projectContributors ProjectContributors[]
+  projectActivityLog  ProjectActivityLog[]
+  projectOwnerId      String
+  ProjectOwner        ProjectOwner          @relation(fields: [projectOwnerId], references: [id], onDelete: Cascade)
+}
+
+model GithubInfo {
+  id              String  @id @default(uuid())
+  isInstallation  Boolean @default(false)
+  installationId  String
+  githubUserId    String
+  githubUsername  String
+  githubUserEmail String
+  repoId          String
+  repoName        String
+  repoFullName    String
+  isPrivate       Boolean
+
+  // one to one
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectContributors {
+  id        String  @id @default(uuid())
+  // one to more
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onUpdate: Cascade)
+
+  userId    String
+  username  String
+  email     String
+  avatar    String
+  role      String
+}
+
+model ProjectActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+
+  // one to more
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade)
+
+  action    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectAnalysis {
+  id           String         @id @default(uuid())
+  projectId    String
+  mergeRequest MergeRequest[] // One to more (mergeRequest)
+  pullRequest  pullRequest[]  // One to more (pullRequest)
+  rewards      Int
+}
+
+// #region Analysis model
+
+model MergeRequest {
+  id              String          @id @default(uuid())
+  userId          String
+  projectId       String
+  ProjectAnalysis ProjectAnalysis @relation(fields: [projectId], references: [id], onDelete: Cascade) // one to more relationship
+  content         Json
+  createdAt       DateTime        @default(now())
+}
+
+model pullRequest {
+  id              String          @id @default(uuid())
+  userId          String
+  projectId       String
+  ProjectAnalysis ProjectAnalysis @relation(fields: [projectId], references: [id], onDelete: Cascade) // one to more relationship
+  content         Json
+  createdAt       DateTime        @default(now())
+}
+
+// #end region

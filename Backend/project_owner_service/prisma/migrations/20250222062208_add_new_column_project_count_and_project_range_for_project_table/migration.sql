@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Project" ADD COLUMN     "projectCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "projectRange" INTEGER NOT NULL DEFAULT 1;
